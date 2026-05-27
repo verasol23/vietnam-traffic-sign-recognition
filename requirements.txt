@@ -1,0 +1,16 @@
+opencv-python
+numpy
+matplotlib
+seaborn
+tqdm
+PyYAML
+pandas
+scikit-learn
+albumentations
+imagehash
+Pillow
+ultralytics
+tensorflow
+torch
+ipykernel
+notebook
