@@ -195,4 +195,4 @@ from Utils.helper_functions import (
 
 ## 👤 Author
 
-Senior Computer Vision Engineer
+Tran Trang Sang HCMUTE
