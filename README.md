@@ -1,198 +1,193 @@
-# 🚦 Traffic Sign Recognition Project
+# Vietnamese Traffic Sign Recognition | Data Preparation & Hybrid Computer Vision
 
-Hệ thống nhận diện biển báo giao thông Việt Nam sử dụng Deep Learning kết hợp **YOLOv8** (Detection) và **CNN** (Classification).
+A computer-vision project for **Vietnamese traffic-sign dataset preparation and recognition**, combining a **YOLOv8 object detector** with a **CNN classifier**. The main emphasis is on creating a traceable image-data workflow: data cleaning, class organization, annotation inspection, train/validation/test splitting, augmentation, model training, and inference.
 
-## 📁 Cấu trúc thư mục
+**Maintainer:** Tran Trang Sang  
+**Main stack:** Python, OpenCV, NumPy, YOLOv8, TensorFlow/Keras, Jupyter Notebook  
+**Project period:** May–July 2026
 
-```
-Project_DL/                             # Thư mục gốc
-│
-├── Traffic_Sign_Project/              # 📦 CODE DỰ ÁN
-│   ├── Data_Pipeline/                 # Xử lý và chuẩn bị dữ liệu
-│   │   ├── Yolov8_Data.ipynb
-│   │   ├── CNN_Data.ipynb
-│   │   └── convert-zd-yolov8-cnn.ipynb
-│   │
-│   ├── Training/                      # Huấn luyện models
-│   │   ├── yolov8-detectsign.ipynb
-│   │   └── cnn-detectsign.ipynb
-│   │
-│   ├── Inference/                     # Chạy thực tế (Production)
-│   │   ├── Model_hybrid.py
-│   │   ├── best.pt
-│   │   └── traffic_sign_cnn.keras
-│   │
-│   ├── Utils/                         # Các hàm phụ trợ
-│   │   ├── __init__.py
-│   │   └── helper_functions.py
-│   │
-│   └── README.md
-│
-├── Data_Raw/                          # 📥 DỮ LIỆU GỐC (chưa xử lý)
-│   ├── YOLO_Dataset/                  # Dataset YOLO format
-│   │   ├── train/images/, labels/
-│   │   └── val/images/, labels/
-│   └── CNN_Dataset/                   # Dataset CNN format
-│       ├── train/0_Cam_nguoc_chieu/...
-│       └── val/0_Cam_nguoc_chieu/...
-│
-├── Data_Processed/                    # 📤 DỮ LIỆU ĐÃ XỬ LÝ
-│   ├── YOLO_Processed/                # YOLO sau khi clean, augment
-│   │   ├── train/images/, labels/
-│   │   ├── val/images/, labels/
-│   │   └── test/images/, labels/
-│   └── CNN_Processed/                 # CNN sau khi resize, dedupe
-│       ├── train/0_Cam_nguoc_chieu/...
-│       ├── val/0_Cam_nguoc_chieu/...
-│       └── test/0_Cam_nguoc_chieu/...
-│
-├── Pictures/                          # 🖼️ ẢNH VISUALIZATION
-│   ├── YOLO_Processing/               # Ảnh quá trình xử lý YOLO
-│   │   ├── 01_Raw_Samples/
-│   │   ├── 02_Class_Distribution/
-│   │   ├── 03_Blur_Detection/
-│   │   ├── 04_Duplicate_Detection/
-│   │   ├── 05_Augmentation/
-│   │   ├── 06_Final_Distribution/
-│   │   └── 07_Sample_Annotations/
-│   └── CNN_Processing/                # Ảnh quá trình xử lý CNN
-│       ├── 01_Raw_Samples/
-│       ├── 02_Class_Distribution/
-│       ├── 03_Resize_Padding/
-│       ├── 04_Duplicate_Detection/
-│       ├── 05_Augmentation/
-│       ├── 06_Final_Distribution/
-│       └── 07_Sample_Per_Class/
-│
-└── Data/                              # (Legacy - tương thích ngược)
-    ├── yolo_dataset/
-    └── cnn_dataset/
+## Project highlights
+
+- **Dataset quality checks:** image-blur filtering, perceptual-hash (pHash) duplicate detection, class-distribution analysis, and visualization of detection annotations.
+- **Dataset preparation:** YOLO-format labels, aspect-ratio-preserving resizing and padding, augmentation, and train/validation/test splits.
+- **Two-stage recognition:** detect a traffic-sign region using YOLOv8, then classify the cropped region with a CNN.
+- **Reproducible notebooks:** separate data-preparation and model-training workflows, with reusable utilities in `Utils/`.
+- **Seven classification groups:** Vietnamese traffic signs organized into seven categories (listed below).
+
+> **Scope note:** The CNN uses seven classification groups. The YOLO data-preparation notebook also describes grouping detection labels into three broader super-classes. Detection and classification label spaces should not be assumed to be identical.
+
+## Processing workflow
+
+```text
+Raw road images + labels                Cropped traffic-sign images
+              |                                      |
+              v                                      v
+  YOLO dataset preparation                  CNN dataset preparation
+  - inspect box labels                      - check class folders
+  - filter blur / duplicates                - pHash deduplication
+  - review distributions                    - resize with padding
+  - split and augment                       - split and balance
+              |                                      |
+              v                                      v
+         YOLOv8 detector                        CNN classifier
+              |                                      ^
+              +--> detected sign crop ---------------+
+                              |
+                              v
+                   Class + bounding box
 ```
 
-## 🔄 Workflow (Quy trình làm việc)
+## Repository structure
 
+The notebooks and utilities are located **at the repository root** (not inside a nested `Traffic_Sign_Project/` directory).
+
+```text
+.
+├── Data_Pipeline/
+│   ├── Yolov8_Data.ipynb
+│   └── CNN_Data.ipynb
+├── Training/
+│   ├── yolov8-detectsign.ipynb
+│   └── cnn-detectsign.ipynb
+├── Utils/
+│   └── helper_functions.py
+├── requirements.txt
+└── README.md
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  1. DATA PREP   │ ──▶ │   2. TRAINING   │ ──▶ │  3. INFERENCE   │
-│  Data_Pipeline/ │     │    Training/    │     │    Inference/   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+
+The notebooks and helper functions also refer to these **local data/output directories** (which may need to be created and populated separately):
+
+```text
+Data_Raw/
+├── YOLO_Dataset/
+└── CNN_Dataset/
+
+Data_Processed/
+├── YOLO_Processed/
+└── CNN_Processed/
+
+Pictures/
+├── YOLO_Processing/
+└── CNN_Processing/
 ```
 
-### 1️⃣ Data Pipeline (Xử lý dữ liệu)
+Large raw datasets, processed datasets, model weights, and locally generated visualizations are **not guaranteed to be included** in the GitHub checkout. Review the paths in the notebooks and `Utils/helper_functions.py` before running them.
 
-**Chạy trên máy local:**
+## Dataset and annotation workflow
+
+### 1. YOLO detection dataset
+
+The detection-data notebook is [`Data_Pipeline/Yolov8_Data.ipynb`](Data_Pipeline/Yolov8_Data.ipynb). It covers:
+
+1. Class mapping and exploratory analysis of class and bounding-box distributions.
+2. Blur detection and duplicate-image filtering.
+3. Inspection of annotations, including invalid or low-quality bounding boxes.
+4. Train/validation/test splitting (configured as **70% / 20% / 10%** in the notebook).
+5. Augmentation and final dataset visualization.
+
+A YOLO detection annotation is typically stored as a text row:
+
+```text
+class_id x_center y_center width height
+```
+
+Coordinates are normalized to the image dimensions. Image files must be paired with matching label files, and the chosen class mapping must remain consistent across all splits.
+
+### 2. CNN classification dataset
+
+The classification-data notebook is [`Data_Pipeline/CNN_Data.ipynb`](Data_Pipeline/CNN_Data.ipynb). It includes:
+
+- Cleaning and splitting images by category.
+- pHash-based detection of near-duplicate images.
+- Resizing with padding to preserve sign geometry.
+- Reviewing class balance and augmentation results.
+- Before/after visualization to inspect preparation decisions.
+
+**Important:** Horizontal flipping is intentionally avoided in the CNN notebook because direction-sensitive traffic signs can change meaning when mirrored.
+
+### Classification categories
+
+| ID | Vietnamese category | English interpretation |
+|---|---|---|
+| 0 | Cam_nguoc_chieu | No entry / wrong-way restriction |
+| 1 | Cam_dung_va_do | No stopping or parking |
+| 2 | Cam_re | Turn prohibited |
+| 3 | Gioi_han_toc_do | Speed limits |
+| 4 | Cam_con_lai | Other prohibition signs |
+| 5 | Nguy_hiem | Warning signs |
+| 6 | Hieu_lenh | Mandatory instruction signs |
+
+These seven categories describe the **classification task**; consult the YOLO notebook for the specific detection-label mapping.
+
+## Getting started
+
+### Prerequisites
+
+- Python 3 and Jupyter Notebook
+- Data provided in the expected raw-data folders
+- Additional model-training dependencies if running the training notebooks
+
+### 1. Clone and create a virtual environment
 
 ```bash
-cd Traffic_Sign_Project/Data_Pipeline/
+git clone https://github.com/verasol23/vietnam-traffic-sign-recognition.git
+cd vietnam-traffic-sign-recognition
+
+python -m venv .venv
+source .venv/bin/activate       # Linux / macOS
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+
+python -m pip install -r requirements.txt
 ```
 
-- **Yolov8_Data.ipynb**: Xử lý dữ liệu YOLO format
-  - Grouping classes
-  - Blur filtering
-  - Deduplication
-  - Data augmentation
-  
-- **CNN_Data.ipynb**: Xử lý dữ liệu CNN format
-  - Resize với padding (giữ tỷ lệ)
-  - Deduplication bằng pHash
-  - Train/Val/Test split
+### 2. Configure dataset paths
 
-### 2️⃣ Training (Huấn luyện)
+Prepare your raw data in the expected YOLO and CNN formats. Before execution, check notebook path settings and `Utils/helper_functions.py`: parts of the code originated from a **nested local project layout** and may expect data folders relative to the parent directory. Adjust paths to match your machine.
 
-**Chạy trên Kaggle/Colab (cần GPU):**
+Do not train using images that overlap between training and evaluation splits. When using pHash filtering, inspect potential near-duplicate groups before removal.
 
-1. Upload dataset đã xử lý lên Kaggle
-2. Mở notebook trong `Training/`
-3. Chạy các cells theo thứ tự
-4. Download model weights về `Inference/`
+### 3. Run data-preparation notebooks
 
-### 3️⃣ Inference (Chạy thực tế)
-
-**Chạy trên máy local:**
+Launch Jupyter from `Data_Pipeline/` so the notebooks' working-directory assumptions are easier to follow:
 
 ```bash
-cd Traffic_Sign_Project/Inference/
-python Model_hybrid.py
+cd Data_Pipeline
+jupyter notebook
 ```
 
-## �️ Pictures - Ảnh Visualization
+Open `Yolov8_Data.ipynb` or `CNN_Data.ipynb` and execute cells in order after verifying the inputs and configuration.
 
-Tất cả ảnh trong quá trình xử lý được lưu vào thư mục `Pictures/` với tên rõ ràng:
+### 4. Model training
 
-### YOLO Processing:
-| Thư mục | Mô tả |
-|---------|-------|
-| 01_Raw_Samples | Mẫu ảnh gốc trước xử lý |
-| 02_Class_Distribution | Biểu đồ phân bố classes |
-| 03_Blur_Detection | Ảnh bị mờ được phát hiện |
-| 04_Duplicate_Detection | Ảnh trùng lặp được loại bỏ |
-| 05_Augmentation | Mẫu ảnh sau augmentation |
-| 06_Final_Distribution | Phân bố cuối cùng |
-| 07_Sample_Annotations | Mẫu ảnh với annotations |
+Training notebooks are located at:
 
-### CNN Processing:
-| Thư mục | Mô tả |
-|---------|-------|
-| 01_Raw_Samples | Mẫu ảnh gốc trước xử lý |
-| 02_Class_Distribution | Biểu đồ phân bố classes |
-| 03_Resize_Padding | So sánh trước/sau resize |
-| 04_Duplicate_Detection | Ảnh trùng lặp được loại bỏ |
-| 05_Augmentation | Mẫu ảnh sau augmentation |
-| 06_Final_Distribution | Phân bố cuối cùng |
-| 07_Sample_Per_Class | Mẫu từng loại biển báo |
+- [YOLOv8 training notebook](Training/yolov8-detectsign.ipynb)
+- [CNN training notebook](Training/cnn-detectsign.ipynb)
 
-## 🛠️ Cài đặt
+They are intended for GPU-capable environments such as Kaggle or Colab. Supply the generated datasets and review the notebook configuration before starting training.
 
-```bash
-# Môi trường cơ bản
-pip install opencv-python numpy matplotlib seaborn tqdm pyyaml
+### 5. Inference
 
-# Cho Data Pipeline
-pip install albumentations imagehash scikit-learn
+The intended final architecture is **YOLO detection → sign crop / preprocessing → CNN classification → visual overlay**. The original local workflow refers to `Inference/Model_hybrid.py` and the model artifacts `best.pt` and `traffic_sign_cnn.keras`. **These inference artifacts are not confirmed in the current repository checkout**, so this README does not claim that a fresh clone can run end-to-end inference without additional files.
 
-# Cho Training & Inference
-pip install ultralytics tensorflow
-```
+## Quality checks and reproducibility
 
-## 📋 Classes (7 loại biển báo)
+Before trusting a dataset or model result:
 
-| ID | Tên class | Mô tả |
-|----|-----------|-------|
-| 0 | Cam_nguoc_chieu | Biển cấm ngược chiều |
-| 1 | Cam_dung_va_do | Biển cấm dừng và đỗ |
-| 2 | Cam_re | Biển cấm rẽ |
-| 3 | Gioi_han_toc_do | Biển giới hạn tốc độ |
-| 4 | Cam_con_lai | Các biển cấm khác |
-| 5 | Nguy_hiem | Biển báo nguy hiểm |
-| 6 | Hieu_lenh | Biển hiệu lệnh |
+- Check class IDs, matching image/label stems, and bounding-box coordinate ranges.
+- Look for identical or near-duplicate images crossing data splits.
+- Review blurry images and difficult examples rather than relying only on automatic filtering.
+- Inspect representative annotation visualizations and class-distribution plots.
+- Keep track of dataset versions, split seeds, augmentation settings, and training configurations.
 
-## 🚀 Sử dụng nhanh
+**Evaluation status:** Numerical benchmark values (such as mAP, accuracy, precision, recall, and FPS) are intentionally omitted here until they can be backed by a clearly defined evaluation dataset and recorded experiment outputs.
 
-### Chạy Inference trên video:
+## Project scope and limitations
 
-```python
-from Inference.Model_hybrid import main
-main()
-```
+This is a **student engineering project**, not a production-validated traffic-safety system. Performance may vary with night scenes, motion blur, occlusion, small signs, camera viewpoint, and class imbalance. The repository documents the preparation and training workflows; deployment readiness requires reproducible evaluation and the necessary model artifacts.
 
-### Import helper functions:
+## Author
 
-```python
-from Utils.helper_functions import (
-    resize_with_padding,
-    calculate_iou,
-    draw_detection,
-    TRAFFIC_SIGN_CLASSES,
-)
-```
-
-## 📝 Ghi chú
-
-- **Utils/helper_functions.py**: Chứa tất cả hàm dùng chung, dễ maintain
-- Các notebooks tự động detect đường dẫn dựa trên `PROJECT_ROOT`
-- Model_hybrid.py hỗ trợ fallback cho cả đường dẫn mới và cũ
-- Training notebooks được thiết kế để chạy trên Kaggle
-
-## 👤 Author
-
-Tran Trang Sang HCMUTE
+**Tran Trang Sang**  
+Robotics & Artificial Intelligence Engineering — HCM-UTE  
+[GitHub profile](https://github.com/verasol23)
