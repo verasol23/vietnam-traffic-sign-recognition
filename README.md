@@ -119,6 +119,26 @@ The classification-data notebook is [`Data_Pipeline/CNN_Data.ipynb`](Data_Pipeli
 
 These seven categories describe the **classification task**; consult the YOLO notebook for the specific detection-label mapping.
 
+
+## Real project results and screenshots
+
+The figures below are exported from **executed notebooks in this repository** (not stock illustrations or AI-generated images).
+
+### Dataset inspection and label quality
+
+![YOLO class distribution after grouping](docs/images/yolo_class_distribution.png)
+*Actual class distribution from the YOLO dataset-analysis notebook; highlights imbalance among the three detection super-classes.*
+
+![Bounding-box distribution analysis](docs/images/yolo_box_analysis.png)
+*Actual bounding-box dimensions, aspect ratios and size statistics from the dataset notebook.*
+
+### CNN classification evaluation
+
+![CNN confusion matrix](docs/images/cnn_confusion_matrix.png)
+*Confusion matrix captured from the CNN training notebook. It is a recorded experiment output, not a benchmark claim for deployment.*
+
+> To show genuine traffic-scene predictions in this repository, add a screenshot exported directly from a verified inference run with permission to share the source frame. Avoid unrelated road stock images.
+
 ## Getting started
 
 ### Prerequisites
